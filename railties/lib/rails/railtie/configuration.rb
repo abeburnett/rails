@@ -88,11 +88,18 @@ module Rails
 
       def method_missing(name, *args, &blk)
         if name.to_s =~ /=$/
-          @@options[$`.to_sym] = args.first
+          key = $`.to_sym
+          value = args.first
+
+          if value.is_a?(Hash)
+            @@options[key] = ActiveSupport::InheritableOptions.new value.with_indifferent_access
+          else
+            @@options[key] = value
+          end
         elsif @@options.key?(name)
           @@options[name]
         else
-          super
+          @@options[name] = ActiveSupport::OrderedOptions.new
         end
       end
     end
